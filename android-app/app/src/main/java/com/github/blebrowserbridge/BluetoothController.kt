@@ -39,10 +39,11 @@ class BluetoothController(private val context: Context) {
         private const val MAX_ADVERTISEMENT_BYTES = 20
     }
 
-    var onPdfNameReceived: ((String) -> Unit)? = null
+    var onPdfNameReceived: ((String, Int) -> Unit)? = null
     val bleEvents = mutableListOf<String>()
     
     private var lastReceivedPdfName: String? = null
+    private var lastReceivedPageIndex: Int = -1
     private var lastReceivedCounter: Byte = -1
     private var advertisementCounter: Byte = (System.currentTimeMillis() % 128).toByte()
 
@@ -52,19 +53,19 @@ class BluetoothController(private val context: Context) {
 
     fun startServer() {
         Log.d(TAG, "Starting BLE Server")
-        sendPdfNameViaAdvertisement("server-ready")
+        sendPdfNameViaAdvertisement("server-ready", 0)
     }
 
     @SuppressLint("MissingPermission")
-    fun sendPdfNameViaAdvertisement(pdfName: String) {
+    fun sendPdfNameViaAdvertisement(pdfName: String, pageIndex: Int) {
         if (!hasAdvertisePermission()) {
             bleEvents.add("ERROR: Missing advertising permission.")
             return
         }
         
         advertisementCounter++
-        Log.d(TAG, "Updating advertisement: $pdfName (v$advertisementCounter)")
-        bleEvents.add("Advertising PDF: $pdfName (v$advertisementCounter)")
+        Log.d(TAG, "Updating advertisement: $pdfName:$pageIndex (v$advertisementCounter)")
+        bleEvents.add("Advertising PDF: $pdfName:$pageIndex (v$advertisementCounter)")
 
         try {
             advertiser?.stopAdvertising(advertiseCallback)
@@ -75,26 +76,32 @@ class BluetoothController(private val context: Context) {
         // Delay to ensure the BLE stack processes the stop before starting again
         handler.removeCallbacksAndMessages(null)
         handler.postDelayed({
-            startAdvertisingInternal(pdfName, advertisementCounter)
+            startAdvertisingInternal(pdfName, advertisementCounter, pageIndex)
         }, 200)
     }
 
     @SuppressLint("MissingPermission")
-    private fun startAdvertisingInternal(pdfName: String, counter: Byte) {
+    private fun startAdvertisingInternal(pdfName: String, counter: Byte, pageIndex: Int) {
         val settings = AdvertiseSettings.Builder()
             .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
             .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
             .setConnectable(false)
             .build()
 
+        // Page index in bytes 1 and 2 (Short, big-endian)
+        val p1 = (pageIndex shr 8 and 0xFF).toByte()
+        val p2 = (pageIndex and 0xFF).toByte()
+
         var nameBytes = pdfName.toByteArray(Charsets.UTF_8)
-        if (nameBytes.size > MAX_ADVERTISEMENT_BYTES - 1) {
-            nameBytes = nameBytes.sliceArray(0 until MAX_ADVERTISEMENT_BYTES - 1)
+        if (nameBytes.size > MAX_ADVERTISEMENT_BYTES - 3) {
+            nameBytes = nameBytes.sliceArray(0 until MAX_ADVERTISEMENT_BYTES - 3)
         }
 
-        val dataBytes = ByteArray(nameBytes.size + 1)
+        val dataBytes = ByteArray(nameBytes.size + 3)
         dataBytes[0] = counter
-        System.arraycopy(nameBytes, 0, dataBytes, 1, nameBytes.size)
+        dataBytes[1] = p1
+        dataBytes[2] = p2
+        System.arraycopy(nameBytes, 0, dataBytes, 3, nameBytes.size)
 
         val data = AdvertiseData.Builder()
             .setIncludeDeviceName(false)
@@ -176,16 +183,18 @@ class BluetoothController(private val context: Context) {
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
             result?.scanRecord?.getManufacturerSpecificData(MANUFACTURER_ID)?.let { data ->
-                if (data.size >= 1) {
+                if (data.size >= 3) {
                     val counter = data[0]
-                    val pdfName = String(data, 1, data.size - 1, Charsets.UTF_8).trim { it <= ' ' || it == '\u0000' }
+                    val pageIndex = ((data[1].toInt() and 0xFF) shl 8) or (data[2].toInt() and 0xFF)
+                    val pdfName = String(data, 3, data.size - 3, Charsets.UTF_8).trim { it <= ' ' || it == '\u0000' }
                     
-                    if (pdfName != lastReceivedPdfName || counter != lastReceivedCounter) {
+                    if (pdfName != lastReceivedPdfName || pageIndex != lastReceivedPageIndex || counter != lastReceivedCounter) {
                         lastReceivedPdfName = pdfName
+                        lastReceivedPageIndex = pageIndex
                         lastReceivedCounter = counter
-                        Log.d(TAG, "Received update: $pdfName (v$counter)")
-                        bleEvents.add("Received update: $pdfName (v$counter)")
-                        onPdfNameReceived?.invoke(pdfName)
+                        Log.d(TAG, "Received update: $pdfName:$pageIndex (v$counter)")
+                        bleEvents.add("Received update: $pdfName:$pageIndex (v$counter)")
+                        onPdfNameReceived?.invoke(pdfName, pageIndex)
                     }
                 }
             }

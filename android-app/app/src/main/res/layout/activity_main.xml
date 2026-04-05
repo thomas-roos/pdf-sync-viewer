@@ -1,100 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="8dp">
-
-        <Button
-            android:id="@+id/selectPdfButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Select PDF"
-            android:layout_marginEnd="4dp" />
-
-        <Button
-            android:id="@+id/startServerButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Start Server"
-            android:layout_marginHorizontal="4dp" />
-
-        <Button
-            android:id="@+id/startClientButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Start Client"
-            android:layout_marginStart="4dp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="8dp">
-
-        <Button
-            android:id="@+id/debugButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Debug Info"
-            android:textSize="12sp" />
-
-        <TextView
-            android:id="@+id/statusText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Status: Ready"
-            android:gravity="center"
-            android:textSize="12sp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="8dp">
-
-        <Button
-            android:id="@+id/prevButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Previous" />
-
-        <TextView
-            android:id="@+id/pageInfo"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="No PDF loaded"
-            android:gravity="center" />
-
-        <Button
-            android:id="@+id/nextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Next" />
-
-    </LinearLayout>
+    android:background="#000000">
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
         <FrameLayout
+            android:id="@+id/pdfContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -103,7 +19,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:adjustViewBounds="true"
-                android:scaleType="fitCenter" />
+                android:scaleType="fitCenter"
+                android:background="#FFFFFF" />
 
             <TextView
                 android:id="@+id/receivedPageText"
@@ -119,4 +36,129 @@
 
     </ScrollView>
 
-</LinearLayout>
+    <!-- Initial Setup Controls -->
+    <LinearLayout
+        android:id="@+id/setupControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#B0000000"
+        android:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <Button
+                android:id="@+id/selectPdfButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Select Folder"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/startServerButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Server"
+                android:layout_marginHorizontal="4dp" />
+
+            <Button
+                android:id="@+id/startClientButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Client"
+                android:layout_marginStart="4dp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/debugButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Debug"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Status: Ready"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:textColor="#FFFFFF" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Minimal Reading Controls Overlay -->
+    <RelativeLayout
+        android:id="@+id/readingControls"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <ImageButton
+            android:id="@+id/prevPageButton"
+            android:layout_width="64dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:background="@android:color/transparent"
+            android:src="@android:drawable/ic_media_previous"
+            android:contentDescription="Previous Page"
+            android:alpha="0.2"
+            android:tint="#FFFFFF" />
+
+        <ImageButton
+            android:id="@+id/nextPageButton"
+            android:layout_width="64dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:background="@android:color/transparent"
+            android:src="@android:drawable/ic_media_next"
+            android:contentDescription="Next Page"
+            android:alpha="0.2"
+            android:tint="#FFFFFF" />
+
+        <ImageButton
+            android:id="@+id/pdfMenuButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp"
+            android:background="@android:drawable/btn_default_small"
+            android:src="@android:drawable/ic_menu_sort_alphabetically"
+            android:contentDescription="PDF List"
+            android:alpha="0.4"
+            android:tint="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/readingPageInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="16dp"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp"
+            android:background="#80000000"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:text="Page Info" />
+
+    </RelativeLayout>
+
+</FrameLayout>

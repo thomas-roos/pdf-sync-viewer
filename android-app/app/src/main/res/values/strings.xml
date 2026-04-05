@@ -1,3 +1,10 @@
 <resources>
-    <string name="app_name">BLE Browser Bridge</string>
+    <string name="app_name">pdf-sync-viewer</string>
+    <string name="server_ready">Connected to server.\nWaiting for PDF broadcast...</string>
+    <string name="incoming_pdf">Incoming PDF: \"%1$s\"\n\n(File not found in your selected folder)</string>
+    <string name="missing_pdf">Missing: %1$s</string>
+    <string name="status_server_started">Status: BLE Server Started</string>
+    <string name="status_client_started">Status: BLE Client Started</string>
+    <string name="client_waiting">Client Mode: Waiting for PDF broadcast...</string>
+    <string name="page_info">%1$s - Page %2$d of %3$d</string>
 </resources>
